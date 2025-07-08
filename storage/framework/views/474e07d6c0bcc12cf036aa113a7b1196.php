@@ -18,7 +18,7 @@
                 </ul>
             </div>
             <div class="bg-gray-100 dark:bg-[#1C1C1A] relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/376] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden flex items-center justify-center">
-                {{-- Logo KARYA SUCI --}}
+                
                 <h1 class="text-5xl font-sans font-bold" style="color: #94DD53;">
                     KARYA SUCI
                 </h1>
@@ -26,4 +26,4 @@
             </div>
         </main>
     </div>
-    </body>
+    </body><?php /**PATH C:\Users\sam\Documents\File_Coding\HTML, CSS, JAVASCRIPT dan GAMBAR\Kuliah\projek\KaryaSuci\resources\views/welcome.blade.php ENDPATH**/ ?>

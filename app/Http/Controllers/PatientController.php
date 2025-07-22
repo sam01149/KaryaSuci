@@ -1,166 +1,235 @@
 <?php
 
-// File: app/Http/Controllers/PatientController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
-use Illuminate\Http\Request;
-
+use App\Models\Branch; 
 use App\Models\TreatmentSession;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Gate;
 use Carbon\Carbon;
+use App\Models\ActivityLog;
 
 class PatientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
-{
-    // 1. Logika untuk Pencarian Pasien
-    $query = Patient::query();
+    {
+        $query = Patient::with('branch'); // Selalu ambil data cabang terkait
 
-    if ($request->has('search') && $request->search != '') {
-        $query->where('name', 'like', '%' . $request->search . '%');
+        $user = Auth::user();
+        $query = Patient::with('branch')->withCount('treatmentSessions');
+        $patients = $query->latest()->paginate(10)->withQueryString();
+
+
+        // HANYA filter berdasarkan cabang jika user BUKAN Admin atau Manajer
+        if (!in_array($user->role, ['Admin', 'Manajer'])) {
+            $query->where('branch_id', $user->branch_id);
+        }
+
+        // Lanjutkan dengan logika pencarian jika ada
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+        
+        $patients = $query->latest()->paginate(10)->withQueryString();
+        
+        // ==========================================================
+        // == BAGIAN YANG HILANG ADA DI SINI ==
+        // ==========================================================
+        // Ambil ID semua pasien yang ada di halaman ini
+        $patientIdsOnPage = $patients->pluck('id');
+
+        // Cari sesi yang sudah dibuat hari ini untuk pasien-pasien di halaman ini
+        $checkedInPatientIds = TreatmentSession::whereIn('patient_id', $patientIdsOnPage)
+            ->whereDate('session_date', Carbon::today())
+            ->pluck('patient_id')
+            ->all();
+        // ==========================================================
+
+        // Sekarang kirim SEMUA variabel yang dibutuhkan oleh view
+        return view('patients.index', compact('patients', 'checkedInPatientIds'));
+
     }
-
-    // Mengambil data pasien dengan paginasi
-    $patients = $query->latest()->paginate(10)->withQueryString();
-
-    // 2. Logika untuk Mendapatkan Status Check-in Hari Ini
-    // Ambil ID pasien yang ada di halaman ini saja
-    $patientIdsOnPage = $patients->pluck('id');
-
-    // Cari sesi yang sudah dibuat hari ini untuk pasien-pasien di halaman ini
-    $checkedInSessions = TreatmentSession::whereIn('patient_id', $patientIdsOnPage)
-        ->whereDate('session_date', Carbon::today())
-        ->pluck('patient_id') // Ambil hanya ID pasiennya
-        ->all(); // Konversi ke array biasa
-
-    // Kirim semua data ke view
-    return view('patients.index', [
-        'patients' => $patients,
-        'checkedInPatientIds' => $checkedInSessions, // Kirim array ID pasien yang sudah check-in
-        'search' => $request->search // Kirim keyword pencarian untuk ditampilkan kembali di form
-    ]);
-}
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('patients.create');
+        $branches = Branch::orderBy('name', 'asc')->get();
+        return view('patients.create', compact('branches'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // 1. Validasi input dan simpan hasilnya ke dalam variabel
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'contact_number' => 'nullable|string',
+            'contact_number' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|in:Laki-laki,Perempuan',
+            'branch_id' => 'required|exists:branches,id',
         ]);
 
-        // 2. Gunakan data yang sudah tervalidasi untuk membuat pasien baru
         Patient::create($validatedData);
-
-         // Redirect ke halaman daftar pasien dengan pesan sukses
-        return redirect()->route('patients.index')
-                         ->with('success', 'Pasien baru berhasil didaftarkan.');
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'branch_id' => $validatedData['branch_id'],
+            'loggable_id' => Patient::latest()->first()->id, // Ambil ID pasien yang baru dibuat
+            'loggable_type' => Patient::class,
+            'action' => 'patient_created',
+            'description' => auth()->user()->name . ' mendaftarkan pasien baru: ' . $validatedData['name'],
+        ]);
+        return redirect()->route('patients.index')->with('success', 'Pasien baru berhasil didaftarkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Patient $patient)
     {
+        $user = Auth::user();
+        if (!in_array($user->role, ['Admin', 'Manajer']) && $user->branch_id !== $patient->branch_id) {
+            abort(403);
+        }
         return view('patients.show', compact('patient'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Patient $patient)
     {
-        return view('patients.edit', compact('patient'));
+        $user = Auth::user();
+        if (!in_array($user->role, ['Admin', 'Manajer']) && $user->branch_id !== $patient->branch_id) {
+            abort(403);
+        }
+        
+        $branches = Branch::orderBy('name', 'asc')->get();
+        return view('patients.edit', compact('patient', 'branches'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Patient $patient)
     {
-         // 1. Validasi input dan simpan hasilnya ke dalam variabel
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'contact_number' => 'nullable|string',
+            'contact_number' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'date_of_birth' => 'nullable|date',
             'gender' => 'nullable|in:Laki-laki,Perempuan',
+            'branch_id' => 'required|exists:branches,id',
         ]);
 
-        // 2. Gunakan data yang sudah tervalidasi untuk mengupdate data pasien
         $patient->update($validatedData);
 
-        // Redirect ke halaman daftar pasien dengan pesan sukses
-        return redirect()->route('patients.index')
-                         ->with('success', 'Data pasien berhasil diperbarui.');
+        return redirect()->route('patients.index')->with('success', 'Data pasien berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Patient $patient)
     {
-        // Hapus data pasien
+        if (! Gate::allows('delete-patient')) {
+            abort(403);
+        }
+        
         $patient->delete();
 
-        // Redirect ke halaman daftar pasien dengan pesan sukses
-        return redirect()->route('patients.index')
-                         ->with('success', 'Data pasien berhasil dihapus.');
+        return redirect()->route('patients.index')->with('success', 'Data pasien berhasil dihapus.');
     }
-   public function checkIn(Request $request, Patient $patient)
+    public function printPDF(Patient $patient)
+    {
+        $data = [
+            'patient' => $patient,
+            'date' => now()->locale('id')->translatedFormat('d F Y')
+        ];
+
+        $pdf = PDF::loadView('patients.print', $data);
+
+        // Nama file: Arsip-NamaPasien-Tanggal.pdf
+        return $pdf->download('Arsip-' . $patient->name . '-' . date('Y-m-d') . '.pdf');
+    }
+
+    public function checkIn(Request $request, Patient $patient)
+    {
+        // Validasi dan pengecekan sesi yang sudah ada
+        $request->validate([
+            'check_in_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $todaySession = TreatmentSession::where('patient_id', $patient->id)
+            ->whereDate('session_date', Carbon::today())
+            ->first();
+
+        if ($todaySession) {
+            return redirect()->route('patients.index')->with('error', 'Pasien sudah check-in untuk hari ini.');
+        }
+
+        // Simpan foto
+        $photoPath = $request->file('check_in_photo')->store('patient_checkins', 'public');
+        $visitCount = TreatmentSession::where('patient_id', $patient->id)->count();
+
+        // Buat Sesi Perawatan Baru
+        TreatmentSession::create([
+            'patient_id' => $patient->id,
+            'branch_id' => $patient->branch_id, // <-- INI BARIS PENTING YANG MEMPERBAIKI ERROR
+            'session_date' => Carbon::today(),
+            'status' => 'Sudah Check-in',
+            'patient_photo_path' => $photoPath,
+            'visit_number' => $visitCount + 1,
+        ]);
+
+        ActivityLog::create([
+        'user_id' => auth()->id(),
+        'branch_id' => $patient->branch_id,
+        'loggable_id' => $patient->id,
+        'loggable_type' => Patient::class,
+        'action' => 'patient_checked_in',
+        'description' => auth()->user()->name . ' melakukan absensi pada pasien ' . $patient->name,
+    ]);
+        return redirect()->route('patients.index')->with('success', $patient->name . ' berhasil check-in dan masuk ke dalam antrian.');
+    }   
+    public function detail(Patient $patient)
 {
-    // 1. Validasi, termasuk validasi untuk file gambar
-    $request->validate([
-        'patient_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Wajib, harus gambar, max 2MB
-    ]);
-    // Validasi dengan named error bag
-    $request->validateWithBag('checkin', [
-        'patient_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-    ]);
-
-    // Cek apakah pasien sudah check-in hari ini
-    $todaySession = TreatmentSession::where('patient_id', $patient->id)
-        ->whereDate('session_date', Carbon::today())
-        ->first();
-
-    if ($todaySession) {
-        return redirect()->route('patients.index')->with('error', 'Pasien sudah check-in untuk hari ini.');
+    // Keamanan: Pastikan user hanya bisa melihat pasien di cabangnya (kecuali Admin/Manajer)
+    $user = Auth::user();
+    if (!in_array($user->role, ['Admin', 'Manajer']) && $user->branch_id !== $patient->branch_id) {
+        abort(403);
     }
 
-    // 2. Simpan foto yang di-upload
-    $photoPath = $request->file('patient_photo')->store('patient_checkins', 'public');
+    // Ambil data pasien beserta semua riwayat sesinya, urutkan dari yang terbaru
+    $patient->load(['treatmentSessions' => function ($query) {
+        $query->latest();
+    }]);
 
-    // Hitung kunjungan sebelumnya
-    $visitCount = TreatmentSession::where('patient_id', $patient->id)->count();
-
-    // 3. Buat sesi baru dengan menyertakan path foto dan nomor kunjungan
-    TreatmentSession::create([
-        'patient_id' => $patient->id,
-        'session_date' => Carbon::today(),
-        'status' => 'Sudah Check-in',
-        'patient_photo_path' => $photoPath, // Simpan path foto
-        'visit_number' => $visitCount + 1, // Kunjungan ke- (total sesi sebelumnya + 1)
-    ]);
-
-    return redirect()->route('patients.index')->with('success', $patient->name . ' berhasil check-in dan masuk ke dalam antrian.');
+    return view('patients.detail', compact('patient'));
 }
+    public function archive(Request $request)
+{
+    $user = Auth::user();
+    $query = Patient::with('branch')->latest(); // Mengambil data terbaru dulu
 
+    // Filter 1: Hak Akses Berdasarkan Cabang
+    if (!in_array($user->role, ['Admin', 'Manajer'])) {
+        $query->where('branch_id', $user->branch_id);
+    }
+
+    // Filter 2: Berdasarkan Keyword Pencarian (Nama atau No. Induk)
+    if ($request->filled('search')) {
+        $query->where(function($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->search . '%')
+              ->orWhere('id', $request->search); // Asumsi No. Induk adalah ID Pasien
+        });
+    }
+
+   
+
+    // Filter 4: Berdasarkan Cabang (hanya untuk Admin/Manajer)
+    if ($request->filled('branch_id') && in_array($user->role, ['Admin', 'Manajer'])) {
+        $query->where('branch_id', $request->branch_id);
+    }
+
+    // Filter 5: Berdasarkan Jarak Tanggal Pendaftaran
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+    }
+
+    // Ambil data dengan paginasi 20 per halaman
+    $patients = $query->paginate(20)->withQueryString();
+
+    // Ambil data cabang untuk dropdown filter (hanya jika Admin/Manajer)
+    $branches = in_array($user->role, ['Admin', 'Manajer']) ? Branch::orderBy('name')->get() : collect();
+
+    return view('patients.archive', compact('patients', 'branches'));
+}
 }

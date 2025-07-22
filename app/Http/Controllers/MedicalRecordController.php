@@ -7,7 +7,7 @@ use App\Models\MedicalRecord;
 use App\Models\TreatmentSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\ActivityLog;
 class MedicalRecordController extends Controller
 {
     public function store(Request $request, TreatmentSession $session)
@@ -30,7 +30,14 @@ class MedicalRecordController extends Controller
 
         // Update status sesi menjadi 'Selesai'
         $session->update(['status' => 'Selesai']);
-
+        ActivityLog::create([
+        'user_id' => auth()->id(),
+        'branch_id' => $session->branch_id,
+        'loggable_id' => $session->patient_id,
+        'loggable_type' => \App\Models\Patient::class,
+        'action' => 'session_finished',
+        'description' => auth()->user()->name . ' menyelesaikan sesi terapi untuk pasien ' . $session->patient->name,
+    ]);
         return redirect()->route('therapist.queue.index')->with('success', 'Sesi untuk pasien ' . $session->patient->name . ' telah selesai.');
     }
 }

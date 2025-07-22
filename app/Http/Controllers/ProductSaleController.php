@@ -27,7 +27,7 @@ class ProductSaleController extends Controller
             'quantity' => 'required|integer|min:1',
             'total_price' => 'required|numeric|min:0',
             // Tambahkan validasi untuk bukti bayar jika diperlukan
-            'receipt_photo' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+            'receipt_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         // Langkah 1: Simpan data penjualan produk (sudah Anda lakukan)

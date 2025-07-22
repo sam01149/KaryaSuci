@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('patients', function (Blueprint $table) {
             $table->id(); // ID unik untuk setiap pasien
+            $table->foreignId('branch_id')->constrained('branches');
             $table->string('name'); // Nama lengkap pasien
             $table->string('contact_number')->nullable(); // Nomor kontak
             $table->text('address')->nullable(); // Alamat

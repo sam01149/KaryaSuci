@@ -1,20 +1,14 @@
 <!DOCTYPE html>
 <html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
     <head>
-        <meta charset="utf-t">
+        <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
-
         <title><?php echo e(config('app.name', 'Laravel')); ?></title>
-
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
 
-        
         <script>
-            // Script ini akan memeriksa localStorage dan menerapkan tema sebelum halaman di-render
             if (localStorage.getItem('darkMode') === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
             } else {
@@ -22,28 +16,49 @@
             }
         </script>
         
-
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
+        <link rel="manifest" href="<?php echo e(asset('/manifest.json')); ?>">
+    <meta name="theme-color" content="#94DD53"/>
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <?php echo $__env->make('layouts.navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <div x-data="{ sidebarOpen: false }" class="relative min-h-screen bg-gray-100 dark:bg-gray-900">
 
-            <!-- Page Heading -->
-            <?php if(isset($header)): ?>
-                <header class="bg-white dark:bg-gray-800 shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        <?php echo e($header); ?>
+            <div 
+                x-show="sidebarOpen" 
+                @click="sidebarOpen = false" 
+                class="fixed inset-0 z-20 bg-black bg-opacity-75 transition-opacity lg:hidden"
+                x-cloak
+            ></div>
 
+            <aside 
+                class="bg-white dark:bg-gray-800 w-64 fixed inset-y-0 left-0 z-30 transform transition duration-300 ease-in-out lg:translate-x-0"
+                :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}"
+            >
+                <?php echo $__env->make('layouts.navigation', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+            </aside>
+
+            <div class="lg:ml-64">
+                <header class="bg-white dark:bg-gray-800 shadow sticky top-0 z-10">
+                    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                        <div class="flex items-center">
+                            <button @click.stop="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-500 dark:text-gray-400 focus:outline-none mr-4">
+                                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            </button>
+                            
+                            <div class="flex-1 min-w-0">
+                                <?php if(isset($header)): ?>
+                                    <?php echo e($header); ?>
+
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </header>
-            <?php endif; ?>
-
-            <!-- Page Content -->
-            <main>
-                <?php echo e($slot); ?>
-
-            </main>
+                <main><?php echo e($slot); ?></main>
+            </div>
         </div>
+        
     </body>
-</html>
-<?php /**PATH C:\Users\sam\Documents\File_Coding\HTML, CSS, JAVASCRIPT dan GAMBAR\Kuliah\projek\KaryaSuci\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Users\sam\Documents\File_Coding\HTML, CSS, JAVASCRIPT dan GAMBAR\Kuliah\projek\KaryaSuci\resources\views/layouts/app.blade.php ENDPATH**/ ?>

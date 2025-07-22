@@ -20,7 +20,7 @@
                             <div class="flex items-center justify-between p-4 border rounded-lg dark:border-gray-700">
                                 <div>
                                     <p class="font-bold text-lg">{{ $session->patient->name }} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(Kunjungan ke-{{$session->visit_number}})</span></p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Check-in: {{ $session->created_at->format('H:i') }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Waktu Kedatangan: {{ $session->created_at->format('H:i') }}</p>
                                 </div>
                                 <a href="{{ route('therapist.session.treat', $session->id) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700">
                                     Layani Pasien

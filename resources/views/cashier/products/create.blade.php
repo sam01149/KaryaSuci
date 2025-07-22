@@ -15,7 +15,7 @@
             @endif
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form action="{{ route('cashier.products.store') }}" method="POST" class="space-y-6">
+                    <form action="{{ route('cashier.products.store') }}" method="POST" class="space-y-6"  enctype="multipart/form-data">
                         @csrf
                         <div>
                             <x-input-label for="patient_id" value="Pilih Pasien" />
@@ -51,7 +51,13 @@
                                 <x-text-input id="total_price" name="total_price" type="number" class="mt-1 block w-full" placeholder="Rp" required />
                             </div>
                         </div>
-
+                            {{-- TAMBAHKAN BLOK INPUT FILE INI --}}
+                        <div class="mt-4">
+                            <x-input-label for="receipt_photo" :value="__('Bukti Pembayaran')" />
+                            <input id="receipt_photo" name="receipt_photo" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-karyasuci-primary file:text-white hover:file:bg-opacity-80" required>
+                            <x-input-error class="mt-2" :messages="$errors->get('receipt_photo')" />
+                        </div>
+                        {{-- AKHIR BLOK INPUT FILE --}}
                         <div class="flex items-center justify-end">
                             <x-primary-button>
                                 Simpan Penjualan

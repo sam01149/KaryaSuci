@@ -52,8 +52,19 @@
                                 <label for="address" class="block font-medium text-sm text-gray-700 dark:text-gray-300">Alamat</label>
                                 <textarea name="address" id="address" rows="4" class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">{{ old('address') }}</textarea>
                             </div>
-
-                            <div class="flex items-center justify-end mt-4">
+                            <div class="mt-4">
+                                <x-input-label for="branch_id" :value="__('Cabang Pendaftaran')" />
+                                <select id="branch_id" name="branch_id" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
+                                    <option value="">-- Pilih Cabang --</option>
+                                    @foreach ($branches as $branch)
+                                        <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                                            {{ $branch->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('branch_id')" class="mt-2" />
+                            </div>
+                                                        <div class="flex items-center justify-end mt-4">
                                 <a href="{{ route('patients.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
                                     Batal
                                 </a>

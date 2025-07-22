@@ -30,12 +30,11 @@ unset($__defined_vars); ?>
 
 <?php
 $classes = ($active ?? false)
-            ? 'inline-flex items-center px-1 pt-1 border-b-2 border-indigo-400 dark:border-indigo-600 text-sm font-medium leading-5 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out'
-            : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-700 focus:outline-none focus:text-gray-700 dark:focus:text-gray-300 focus:border-gray-300 dark:focus:border-gray-700 transition duration-150 ease-in-out';
+            ? 'flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-karyasuci-primary dark:bg-karyasuci-primary' // Style untuk link aktif
+            : 'flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'; // Style untuk link tidak aktif
 ?>
 
 <a <?php echo e($attributes->merge(['class' => $classes])); ?>>
     <?php echo e($slot); ?>
 
-</a>
-<?php /**PATH C:\Users\sam\Documents\File_Coding\HTML, CSS, JAVASCRIPT dan GAMBAR\Kuliah\projek\KaryaSuci\resources\views/components/nav-link.blade.php ENDPATH**/ ?>
+</a><?php /**PATH C:\Users\sam\Documents\File_Coding\HTML, CSS, JAVASCRIPT dan GAMBAR\Kuliah\projek\KaryaSuci\resources\views/components/nav-link.blade.php ENDPATH**/ ?>

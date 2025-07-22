@@ -10,7 +10,7 @@
 <?php $component->withAttributes([]); ?>
      <?php $__env->slot('header', null, []); ?> 
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            <?php echo e(__('Manajemen Pasien')); ?>
+            <?php echo e(__('Absensi Pasien')); ?>
 
         </h2>
      <?php $__env->endSlot(); ?>
@@ -43,65 +43,73 @@
                         </a>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">No</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status Hari Ini</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <?php $__empty_1 = true; $__currentLoopData = $patients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $patient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"><?php echo e($loop->index + $patients->firstItem()); ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"><?php echo e($patient->name); ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <?php if(in_array($patient->id, $checkedInPatientIds)): ?>
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                Sudah Check-in
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                Belum Check-in
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex items-center space-x-4">
-                                            <?php if(!in_array($patient->id, $checkedInPatientIds)): ?>
-                                                
-                                                <button 
-                                                    x-data=""
-                                                    x-on:click.prevent="$dispatch('open-modal', 'checkin-modal-<?php echo e($patient->id); ?>')"
-                                                    class="text-green-600 hover:text-green-900 font-semibold">
-                                                    Check-in
-                                                </button>
-                                            <?php endif; ?>
-                                            
-                                            <a href="<?php echo e(route('patients.show', $patient->id)); ?>" class="text-blue-600 hover:text-blue-900 font-semibold">Lihat</a>
-                                            
-                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete_patients')): ?>
-                                                <a href="<?php echo e(route('patients.edit', $patient->id)); ?>" class="text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
-                                                <form action="<?php echo e(route('patients.destroy', $patient->id)); ?>" method="POST" onsubmit="return confirm('PERINGATAN: Menghapus pasien juga akan menghapus semua riwayat sesi dan rekam medisnya. Anda yakin?');" class="inline">
-                                                    <?php echo csrf_field(); ?>
-                                                    <?php echo method_field('DELETE'); ?>
-                                                    <button type="submit" class="text-red-600 hover:text-red-900 font-semibold">Hapus</button>
-                                                </form>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                <tr>
-                                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Tidak ada data pasien yang cocok.</td>
-                                </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                   <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">No</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama</th>
+                
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cabang</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status Hari Ini</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <?php $__empty_1 = true; $__currentLoopData = $patients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $patient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"><?php echo e($loop->index + $patients->firstItem()); ?></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"><?php echo e($patient->name); ?></td>
+                
+                
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <?php echo e($patient->branch ? $patient->branch->name : 'N/A'); ?>
+
+                </td>
+
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <?php if(in_array($patient->id, $checkedInPatientIds ?? [])): ?>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Sudah Absen
+                        </span>
+                    <?php else: ?>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            Belum Absen
+                        </span>
+                    <?php endif; ?>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex items-center space-x-4">
+                        <?php if(!in_array($patient->id, $checkedInPatientIds ?? [])): ?>
+                            <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'checkin-modal-<?php echo e($patient->id); ?>')"
+                                class="text-green-600 hover:text-green-900 font-semibold">
+                                Absen
+                            </button>
+                        <?php endif; ?>
+                        <a href="<?php echo e(route('patients.print.pdf', $patient->id)); ?>"  class="text-gray-600 dark:text-gray-400 hover:underline">Print</a>
+                        <a href="<?php echo e(route('patients.detail', $patient->id)); ?>" class="text-blue-600 hover:text-blue-900 font-semibold">Detail</a>
+
+
+                        
+                        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete-patient')): ?>
+                            <a href="<?php echo e(route('patients.edit', $patient->id)); ?>" class="text-indigo-600 hover:text-indigo-900 font-semibold">Edit</a>
+                            <form action="<?php echo e(route('patients.destroy', $patient->id)); ?>" method="POST" onsubmit="return confirm('PERINGATAN: Menghapus pasien ini akan menghapus semua data terkait. Anda yakin?');" class="inline">
+                                <?php echo csrf_field(); ?>
+                                <?php echo method_field('DELETE'); ?>
+                                <button type="submit" class="text-red-600 hover:text-red-900 font-semibold">Hapus</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
+                </td>
+            </tr>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <tr>
+                <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Tidak ada data pasien yang cocok.</td>
+            </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
                     <div class="mt-4">
                         <?php echo e($patients->links()); ?>
 
@@ -113,35 +121,55 @@
 
     
     <?php $__currentLoopData = $patients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $patient): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-    <?php if (isset($component)) { $__componentOriginal9f64f32e90b9102968f2bc548315018c = $component; } ?>
+<?php if (isset($component)) { $__componentOriginal9f64f32e90b9102968f2bc548315018c = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9f64f32e90b9102968f2bc548315018c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modal','data' => ['name' => 'checkin-modal-'.e($patient->id).'','show' => false,'focusable' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modal','data' => ['name' => 'checkin-modal-'.e($patient->id).'','show' => $errors->checkin->isNotEmpty() && old('patient_id_for_modal') == $patient->id,'focusable' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('modal'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => 'checkin-modal-'.e($patient->id).'','show' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false),'focusable' => true]); ?>
-        <form action="<?php echo e(route('patients.checkin', $patient->id)); ?>" method="post" enctype="multipart/form-data" class="p-6">
-            <?php echo csrf_field(); ?>
-            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                Check-in Pasien: <span class="font-bold"><?php echo e($patient->name); ?></span>
-            </h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Silakan ambil dan upload foto pasien sebagai bukti kehadiran hari ini.
-            </p>
-            <div class="mt-6">
-                <?php if (isset($component)) { $__componentOriginale3da9d84bb64e4bc2eeebaafabfb2581 = $component; } ?>
+<?php $component->withAttributes(['name' => 'checkin-modal-'.e($patient->id).'','show' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($errors->checkin->isNotEmpty() && old('patient_id_for_modal') == $patient->id),'focusable' => true]); ?>
+    <form action="<?php echo e(route('patients.checkin', $patient->id)); ?>" method="post" enctype="multipart/form-data" class="p-6">
+        <?php echo csrf_field(); ?>
+        
+        <input type="hidden" name="patient_id_for_modal" value="<?php echo e($patient->id); ?>">
+
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+            Absensi Pasien: <span class="font-bold"><?php echo e($patient->name); ?></span>
+        </h2>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Silakan ambil dan upload foto pasien sebagai bukti kehadiran hari ini.
+        </p>
+
+        
+        
+        
+        <?php if($errors->checkin->any()): ?>
+            <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <strong class="font-bold">Terjadi Kesalahan!</strong>
+                <ul class="mt-2 list-disc list-inside">
+                    <?php $__currentLoopData = $errors->checkin->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+        
+
+        <div class="mt-6">
+            
+            <?php if (isset($component)) { $__componentOriginale3da9d84bb64e4bc2eeebaafabfb2581 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginale3da9d84bb64e4bc2eeebaafabfb2581 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.input-label','data' => ['for' => 'patient_photo_'.e($patient->id).'','value' => 'Foto Pasien (Wajib)']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.input-label','data' => ['for' => 'check_in_photo_'.e($patient->id).'','value' => 'Foto Pasien (Wajib)']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('input-label'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['for' => 'patient_photo_'.e($patient->id).'','value' => 'Foto Pasien (Wajib)']); ?>
+<?php $component->withAttributes(['for' => 'check_in_photo_'.e($patient->id).'','value' => 'Foto Pasien (Wajib)']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginale3da9d84bb64e4bc2eeebaafabfb2581)): ?>
@@ -152,33 +180,10 @@
 <?php $component = $__componentOriginale3da9d84bb64e4bc2eeebaafabfb2581; ?>
 <?php unset($__componentOriginale3da9d84bb64e4bc2eeebaafabfb2581); ?>
 <?php endif; ?>
-                <input id="patient_photo_<?php echo e($patient->id); ?>" name="patient_photo" type="file" class="block w-full mt-1 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" accept="image/*" required>
-                
-                <?php if($errors->checkin->has('patient_photo')): ?>
-                    <?php if (isset($component)) { $__componentOriginalf94ed9c5393ef72725d159fe01139746 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginalf94ed9c5393ef72725d159fe01139746 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.input-error','data' => ['messages' => $errors->checkin->get('patient_photo'),'class' => 'mt-2']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('input-error'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['messages' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($errors->checkin->get('patient_photo')),'class' => 'mt-2']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginalf94ed9c5393ef72725d159fe01139746)): ?>
-<?php $attributes = $__attributesOriginalf94ed9c5393ef72725d159fe01139746; ?>
-<?php unset($__attributesOriginalf94ed9c5393ef72725d159fe01139746); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginalf94ed9c5393ef72725d159fe01139746)): ?>
-<?php $component = $__componentOriginalf94ed9c5393ef72725d159fe01139746; ?>
-<?php unset($__componentOriginalf94ed9c5393ef72725d159fe01139746); ?>
-<?php endif; ?>
-                <?php endif; ?>
-            </div>
-            <div class="mt-6 flex justify-end">
-                <?php if (isset($component)) { $__componentOriginal3b0e04e43cf890250cc4d85cff4d94af = $component; } ?>
+            <input id="check_in_photo_<?php echo e($patient->id); ?>" name="check_in_photo" type="file" class="block w-full mt-1 text-sm ..." accept="image/*" required>
+        </div>
+        <div class="mt-6 flex justify-end">
+            <?php if (isset($component)) { $__componentOriginal3b0e04e43cf890250cc4d85cff4d94af = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal3b0e04e43cf890250cc4d85cff4d94af = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.secondary-button','data' => ['xOn:click' => '$dispatch(\'close\')']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('secondary-button'); ?>
@@ -188,8 +193,8 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['x-on:click' => '$dispatch(\'close\')']); ?>
-                    Batal
-                 <?php echo $__env->renderComponent(); ?>
+                Batal
+             <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal3b0e04e43cf890250cc4d85cff4d94af)): ?>
 <?php $attributes = $__attributesOriginal3b0e04e43cf890250cc4d85cff4d94af; ?>
@@ -199,7 +204,7 @@
 <?php $component = $__componentOriginal3b0e04e43cf890250cc4d85cff4d94af; ?>
 <?php unset($__componentOriginal3b0e04e43cf890250cc4d85cff4d94af); ?>
 <?php endif; ?>
-                <?php if (isset($component)) { $__componentOriginald411d1792bd6cc877d687758b753742c = $component; } ?>
+            <?php if (isset($component)) { $__componentOriginald411d1792bd6cc877d687758b753742c = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald411d1792bd6cc877d687758b753742c = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.primary-button','data' => ['class' => 'ms-3']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('primary-button'); ?>
@@ -209,8 +214,8 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['class' => 'ms-3']); ?>
-                    Konfirmasi Check-in
-                 <?php echo $__env->renderComponent(); ?>
+                Konfirmasi Absensi
+             <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginald411d1792bd6cc877d687758b753742c)): ?>
 <?php $attributes = $__attributesOriginald411d1792bd6cc877d687758b753742c; ?>
@@ -220,9 +225,9 @@
 <?php $component = $__componentOriginald411d1792bd6cc877d687758b753742c; ?>
 <?php unset($__componentOriginald411d1792bd6cc877d687758b753742c); ?>
 <?php endif; ?>
-            </div>
-        </form>
-     <?php echo $__env->renderComponent(); ?>
+        </div>
+    </form>
+ <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal9f64f32e90b9102968f2bc548315018c)): ?>
 <?php $attributes = $__attributesOriginal9f64f32e90b9102968f2bc548315018c; ?>
@@ -232,7 +237,7 @@
 <?php $component = $__componentOriginal9f64f32e90b9102968f2bc548315018c; ?>
 <?php unset($__componentOriginal9f64f32e90b9102968f2bc548315018c); ?>
 <?php endif; ?>
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
